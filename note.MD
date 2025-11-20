@@ -9,6 +9,7 @@
 - Normalization constrains feature vectors to the unit sphere, so logits reflect angular distance rather than raw magnitude.
 - The learnable temperature `logit_scale.exp()` rescales cosine similarities to sharpen or soften the softmax distribution. During training, gradients encourage higher temperatures (up to a capped value) when classes are hard to separate and lower temperatures when similarities are already peaky.
 - In the implementation, `logit_scale` starts at `log(1/0.07)`, matching the initialization from the CLIP paper; it is stored as an unconstrained scalar parameter and exponentiated in the forward pass before scaling the similarity matrix. This keeps the learnable quantity in log-space while ensuring the applied temperature is always positive.
+- The exact initialization lives in `clip/model.py` inside the `CLIP` constructor: `self.logit_scale = nn.Parameter(torch.ones([]) * np.log(1 / 0.07))`, and the forward pass multiplies the normalized similarity matrix by `self.logit_scale.exp()` (`logits_per_image = logit_scale * image_features @ text_features.t()`).
 
 ## Contrastive Loss Function
 - Training treats each image row of `logits_per_image` as a classification task over captions and each column (or `logits_per_text`) as a classification task over images.
